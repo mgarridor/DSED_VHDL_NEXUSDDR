@@ -53,6 +53,9 @@ SYNC_PROC : process (clk_12megas,reset)
 begin
     if (reset = '1') then
         state <= idle;
+        cuenta_reg<=(others=>'0');
+        dato1_reg<=(others=>'0');
+        dato2_reg<=(others=>'0');
     elsif (rising_edge(clk_12megas)and enable_4_cycles='1') then
         
             state<=next_state;
@@ -84,8 +87,7 @@ when others=>
                 
                  cuenta_next<=cuenta_reg + 1;
                  
-                    if(micro_data='1')then
-                    
+                    if(micro_data='1')then                  
                         dato1_next<=dato1_reg + 1;
                         dato2_next<=dato2_reg + 1;
                     end if;
@@ -94,7 +96,7 @@ when others=>
         elsif((cuenta_reg >=106) and
               (cuenta_reg <= 149))then
               
-                   cuenta_next<=cuenta_reg + 1;
+                   cuenta_next <= cuenta_reg + 1;
                    
                    if(micro_data='1')then
                                        
