@@ -42,13 +42,21 @@ entity fir_filter is
 end fir_filter;
 
 architecture Behavioral of fir_filter is
-constant c0,c4:signed:="00001001";
-constant c1,c3:signed:="";
-constant c2:signed:="";
+--costantes paso bajo
+constant cb0,cb4:signed:="00001001";
+constant cb1,cb3:signed:="00011111";
+constant cb2:signed:="00111001";
+--costantes paso alto NO SON ESTOS VALORES
+constant ca0,ca4:signed:="00000000";
+constant ca1,ca3:signed:="00000000";
+constant ca2:signed:="00000000";
+
 signal control: std_logic_vector(2 downto 0);
+signal c0,c1,c2,c3,c4:signed(7 downto 0):=(others=>'0');
 signal r1_next, r1_reg,r2_next,r2_reg,r3_next,r3_reg:signed(15 downto 0):=(others=>'0');
 signal x0, x1, x2, x3, x4:std_logic_vector(7 downto 0):=(others=>'0');
 signal multA, multB:signed(7 downto 0):=(others=>'0');
+
 begin
 --input register
 process(clk)
@@ -64,7 +72,7 @@ end process;
 -- state register logic
 process(clk)
 begin
-    if(rising_edge(clk))then
+    if(rising_edge(clk) and sample_in_enable='1')then
         r1_reg<=r1_next;
         r2_reg<=r2_next;
         r3_reg<=r3_next;
@@ -72,8 +80,21 @@ begin
 end process;
 
 --next state logic
-process(sample_in,r1_reg,r2_reg,r3_reg,x0,x1,x2,x3,x4)
+process(filter_select,control,sample_in,r1_reg,r2_reg,r3_reg,x0,x1,x2,x3,x4)
 begin
+    if(filter_select='1')then
+        c0<=ca0;
+        c1<=ca1;
+        c2<=ca2;
+        c3<=ca3;
+        c4<=ca4;
+    else
+        c0<=cb0;
+        c1<=cb1;
+        c2<=cb2;
+        c3<=cb3;
+        c4<=cb4;
+    end if;
     case control is 
         when "000" => multA<= signed(x0);
         when "001" => multA<= signed(x1);
@@ -82,10 +103,10 @@ begin
         when others => multA<= signed(x4);   
     end case;
     case control is 
-        when "000" => multB<= signed(c0);
-        when "001" => multB<= signed(c1);
-        when "010" => multB<= signed(c2); 
-        when "011" => multB<= signed(c3);
+        when "000" => multB<= c0;
+        when "001" => multB<= c1;
+        when "010" => multB<= c2; 
+        when "011" => multB<= c3;
         when others => multB<= signed(c4);   
     end case;
     r1_next<=multA*multB;
@@ -93,4 +114,5 @@ begin
     r3_next<=r2_reg + r3_reg;
     sample_out<= std_logic_vector(r3_reg(15 downto 7));
 end process;
+with
 end Behavioral;
