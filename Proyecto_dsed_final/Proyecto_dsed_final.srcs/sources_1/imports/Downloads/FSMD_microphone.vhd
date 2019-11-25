@@ -53,9 +53,6 @@ SYNC_PROC : process (clk_12megas,reset)
 begin
     if (reset = '1') then
         state <= idle;
-        cuenta_reg<=(others=>'0');
-        dato1_reg<=(others=>'0');
-        dato2_reg<=(others=>'0');
     elsif (rising_edge(clk_12megas)and enable_4_cycles='1') then
         
             state<=next_state;
@@ -71,6 +68,11 @@ end process;
 
 OUTPUT_DECODE : process (reset,state,micro_data,cuenta_reg,dato1_reg,dato2_reg)
 begin
+--valores por defecto
+dato1_next<=dato1_reg;
+dato2_next<=dato2_reg;
+cuenta_next<=cuenta_reg;
+primer_ciclo_next<=primer_ciclo_reg;
 case state is
 when idle=>
     sample_out<="000000000";
@@ -79,7 +81,7 @@ when idle=>
         dato2_next<="000000000";
         cuenta_next<="000000000";
         primer_ciclo_next<='0';
-    end if;--hasta aqui
+    end if;
 when others=>
         if((cuenta_reg <=105)or
                 ((cuenta_reg >=150)and
@@ -87,7 +89,8 @@ when others=>
                 
                  cuenta_next<=cuenta_reg + 1;
                  
-                    if(micro_data='1')then                  
+                    if(micro_data='1')then
+                    
                         dato1_next<=dato1_reg + 1;
                         dato2_next<=dato2_reg + 1;
                     end if;
@@ -96,7 +99,7 @@ when others=>
         elsif((cuenta_reg >=106) and
               (cuenta_reg <= 149))then
               
-                   cuenta_next <= cuenta_reg + 1;
+                   cuenta_next<=cuenta_reg + 1;
                    
                    if(micro_data='1')then
                                        

@@ -1,0 +1,6 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/matia/Desktop/universidad/dsed/DSED_VHDL_NEXUSDDR-master/Proyecto_dsed_final/Proyecto_dsed_final.srcs/sources_1/imports/Downloads/FSMD_microphone.vhd" into library xil_defaultlib
+INFO: [VRFC 10-307] analyzing entity FSMD_microphone
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/matia/Desktop/universidad/dsed/DSED_VHDL_NEXUSDDR-master/Proyecto_dsed_final/Proyecto_dsed_final.srcs/sources_1/new/en_4_cycles.vhd" into library xil_defaultlib
+INFO: [VRFC 10-307] analyzing entity en_4_cycles
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/matia/Desktop/universidad/dsed/DSED_VHDL_NEXUSDDR-master/Proyecto_dsed_final/Proyecto_dsed_final.srcs/sim_1/new/FSMD_microphone_tb1.vhd" into library xil_defaultlib
+INFO: [VRFC 10-307] analyzing entity FSMD_microphone_tb1
