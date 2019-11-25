@@ -46,12 +46,12 @@ architecture Behavioral of fir_filter is
 constant cb0,cb4:signed:="00001001";
 constant cb1,cb3:signed:="00011111";
 constant cb2:signed:="00111001";
---costantes paso alto NO SON ESTOS VALORES
-constant ca0,ca4:signed:="00000000";
-constant ca1,ca3:signed:="00000000";
-constant ca2:signed:="00000000";
+--costantes paso alto
+constant ca0,ca4:signed:="10000001";
+constant ca1,ca3:signed:="10011001";
+constant ca2:signed:="01001100";
 
-signal control: std_logic_vector(2 downto 0);
+signal control_reg,control_next: std_logic_vector(2 downto 0):=(others=>'0');
 signal c0,c1,c2,c3,c4:signed(7 downto 0):=(others=>'0');
 signal r1_next, r1_reg,r2_next,r2_reg,r3_next,r3_reg:signed(15 downto 0):=(others=>'0');
 signal x0, x1, x2, x3, x4:std_logic_vector(7 downto 0):=(others=>'0');
@@ -68,6 +68,8 @@ begin
         x1<=x0;
         x0<=sample_in;
     end if;
+    
+
 end process;
 -- state register logic
 process(clk)
@@ -77,10 +79,14 @@ begin
         r2_reg<=r2_next;
         r3_reg<=r3_next;
     end if;
+    if(rising_edge(clk))then
+       control_reg<=control_next;
+    end if;
+    
 end process;
 
 --next state logic
-process(filter_select,control,sample_in,r1_reg,r2_reg,r3_reg,x0,x1,x2,x3,x4)
+process(filter_select,control_reg,sample_in,r1_reg,r2_reg,r3_reg,x0,x1,x2,x3,x4)
 begin
     if(filter_select='1')then
         c0<=ca0;
@@ -95,14 +101,14 @@ begin
         c3<=cb3;
         c4<=cb4;
     end if;
-    case control is 
+    case control_reg is 
         when "000" => multA<= signed(x0);
         when "001" => multA<= signed(x1);
         when "010" => multA<= signed(x2); 
         when "011" => multA<= signed(x3);
         when others => multA<= signed(x4);   
     end case;
-    case control is 
+    case control_reg is 
         when "000" => multB<= c0;
         when "001" => multB<= c1;
         when "010" => multB<= c2; 
@@ -112,7 +118,13 @@ begin
     r1_next<=multA*multB;
     r2_next<=r1_reg;
     r3_next<=r2_reg + r3_reg;
-    sample_out<= std_logic_vector(r3_reg(15 downto 7));
+    sample_out<= std_logic_vector(r3_reg(15 downto 8));
+    
+    if (control_reg="100")then
+        control_next<="000";
+    else
+        control_next<= std_logic_vector(unsigned(control_reg) +to_unsigned(1,control_reg'length));
+    end if;
 end process;
 
 end Behavioral;
