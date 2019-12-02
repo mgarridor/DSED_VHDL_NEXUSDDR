@@ -136,7 +136,7 @@ begin
         when "011" => multB<= c3;
         when others => multB<= signed(c4);   
     end case;
-
+--hay que poner una condicion para que solo se haga 5 veces
         r1_next<=multA*multB;
         r2_next<=r1_reg;
         r3_next<=r2_reg + r3_reg;
