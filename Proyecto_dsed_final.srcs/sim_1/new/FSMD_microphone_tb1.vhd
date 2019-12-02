@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use work.DSED.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -41,7 +41,7 @@ component FSMD_microphone is
            reset : in STD_LOGIC;
            enable_4_cycles : in STD_LOGIC;
            micro_data : in STD_LOGIC;
-           sample_out : out STD_LOGIC_VECTOR (8 downto 0);
+           sample_out : out STD_LOGIC_VECTOR (sample_size-1 downto 0);
            sample_out_ready : out STD_LOGIC);
 end component;
 
@@ -54,7 +54,7 @@ component en_4_cycles is
 end component;
 
 signal clk_12megas,reset,enable_4_cycles,micro_data,sample_out_ready ,clk_3megas,en_2_cycles: std_logic;
-signal sample_out : std_logic_vector (8 downto 0);
+signal sample_out : std_logic_vector (sample_size-1 downto 0);
 constant clk_period : time := 84 ns; 
 
 begin
@@ -87,6 +87,8 @@ end process;
 
 process
 begin
+reset<='1';
+wait for 1 ns;
 micro_data<='1';
 reset<='0';
 wait;

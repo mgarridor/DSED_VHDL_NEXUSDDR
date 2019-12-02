@@ -53,9 +53,10 @@ component audio_interface is
 end component;
 
 signal clk_12megas, reset,sample_out_ready,jack_pwm,sample_request,micro_clk,micro_data:std_logic;
+signal a,b,c,nor_aux:std_logic:='0';
 signal jack_sd,micro_LR,record_enable,play_enable:std_logic;
 signal sample_out:std_logic_vector(8 downto 0);
-constant clk_period : time := 84 ns; 
+constant clk_period : time := 10 ns; 
 begin
 
 clk_process :process 
@@ -84,8 +85,7 @@ UUT: audio_interface Port map(
 
 process
 begin
-    micro_data<='1';
-    
+
     record_enable<='1';
     play_enable<='1';
     reset<='1';
@@ -93,5 +93,14 @@ begin
     reset<='0';
     wait;
 wait;
+end process;
+process
+begin
+a <= not a after 2560 ns;
+b <= not b after 1710 ns;
+c <= not c after 1840 ns;
+nor_aux<= a xor b xor c;
+micro_data<=nor_aux;
+wait for 1 ns;
 end process;
 end Behavioral;

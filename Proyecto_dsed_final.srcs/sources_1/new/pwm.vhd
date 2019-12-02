@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use work.DSED.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
@@ -35,7 +35,7 @@ entity pwm is
     Port ( clk_12megas : in STD_LOGIC;
            reset : in STD_LOGIC;
            en_2_cycles: in STD_LOGIC;
-           sample_in : in STD_LOGIC_VECTOR (8 downto 0);
+           sample_in : in STD_LOGIC_VECTOR (sample_size-1 downto 0);
            sample_request : out STD_LOGIC;
            pwm_pulse : out STD_LOGIC);
 end pwm;

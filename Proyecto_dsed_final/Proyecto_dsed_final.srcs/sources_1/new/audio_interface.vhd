@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use work.DSED.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -35,13 +35,13 @@ entity audio_interface is
     Port ( clk_12megas : in STD_LOGIC;
            reset : in STD_LOGIC;
            record_enable : in STD_LOGIC;
-           sample_out : out STD_LOGIC_VECTOR (8 downto 0);
+           sample_out : out STD_LOGIC_VECTOR (sample_size-1 downto 0);
            sample_out_ready : out STD_LOGIC;
            micro_clk : out STD_LOGIC;
            micro_data : in STD_LOGIC;
            micro_LR : out STD_LOGIC;
            play_enable : in STD_LOGIC;
-           sample_in : in STD_LOGIC_VECTOR (8 downto 0);
+           sample_in : in STD_LOGIC_VECTOR (sample_size-1 downto 0);
            sample_request : out STD_LOGIC;
            jack_sd : out STD_LOGIC;
            jack_pwm : out STD_LOGIC);
@@ -53,7 +53,7 @@ component pwm is Port(
     clk_12megas : in STD_LOGIC;
     reset : in STD_LOGIC;
     en_2_cycles: in STD_LOGIC;
-    sample_in : in STD_LOGIC_VECTOR (8 downto 0);
+    sample_in : in STD_LOGIC_VECTOR (sample_size-1 downto 0);
     sample_request : out STD_LOGIC;
     pwm_pulse : out STD_LOGIC);
 end component;
@@ -71,7 +71,7 @@ component FSMD_microphone is
            reset : in STD_LOGIC;
            enable_4_cycles : in STD_LOGIC;
            micro_data : in STD_LOGIC;
-           sample_out : out STD_LOGIC_VECTOR (8 downto 0);
+           sample_out : out STD_LOGIC_VECTOR (sample_size-1 downto 0);
            sample_out_ready : out STD_LOGIC);
 end component;
 

@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use work.DSED.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
@@ -36,7 +36,7 @@ entity FSMD_microphone is
            reset : in STD_LOGIC;
            enable_4_cycles : in STD_LOGIC;
            micro_data : in STD_LOGIC;
-           sample_out : out STD_LOGIC_VECTOR (8 downto 0);
+           sample_out : out STD_LOGIC_VECTOR (sample_size-1 downto 0);
            sample_out_ready : out STD_LOGIC);
 end FSMD_microphone;
 
@@ -44,7 +44,9 @@ architecture Behavioral of FSMD_microphone is
 
 type state_type is (idle, muestreo);
 signal state, next_state : state_type;
-signal dato1_reg,dato1_next, dato2_reg,dato2_next, cuenta_reg,cuenta_next : unsigned(8 downto 0);
+signal dato1_reg,dato1_next, dato2_reg,dato2_next:unsigned (sample_size-1 downto 0);
+signal cuenta_reg,cuenta_next : unsigned(8 downto 0);
+signal sample_out_reg,sample_out_next:std_logic_vector(sample_size-1 downto 0);
 signal primer_ciclo_reg,primer_ciclo_next : std_logic;
 
 begin
@@ -53,6 +55,10 @@ SYNC_PROC : process (clk_12megas,reset)
 begin
     if (reset = '1') then
         state <= idle;
+        dato1_reg<=(others=>'0');
+        dato2_reg<=(others=>'0');
+        cuenta_reg<=(others=>'0');
+        primer_ciclo_reg<='0';
     elsif (rising_edge(clk_12megas)and enable_4_cycles='1') then
         
             state<=next_state;
@@ -61,27 +67,25 @@ begin
             dato2_reg<=dato2_next;
             cuenta_reg<=cuenta_next;
             primer_ciclo_reg<=primer_ciclo_next;
+            sample_out_reg<=sample_out_next;
             
     end if;
     
 end process;
 
-OUTPUT_DECODE : process (reset,state,micro_data,cuenta_reg,dato1_reg,dato2_reg)
+OUTPUT_DECODE : process (reset,state,micro_data,cuenta_reg,dato1_reg,dato2_reg,primer_ciclo_reg)
 begin
 --valores por defecto
 dato1_next<=dato1_reg;
 dato2_next<=dato2_reg;
 cuenta_next<=cuenta_reg;
 primer_ciclo_next<=primer_ciclo_reg;
+sample_out_next<=sample_out_reg;
+
 case state is
 when idle=>
-    sample_out<="000000000";
-    if (reset = '0')then
-        dato1_next<="000000000";
-        dato2_next<="000000000";
-        cuenta_next<="000000000";
-        primer_ciclo_next<='0';
-    end if;
+    sample_out_next<=(others=>'0');
+
 when others=>
         if((cuenta_reg <=105)or
                 ((cuenta_reg >=150)and
@@ -90,9 +94,10 @@ when others=>
                  cuenta_next<=cuenta_reg + 1;
                  
                     if(micro_data='1')then
-                    
-                        dato1_next<=dato1_reg + 1;
-                        dato2_next<=dato2_reg + 1;
+                        if (dato1_reg/=255)then
+                            dato1_next<=dato1_reg + 1;
+                            dato2_next<=dato2_reg + 1;
+                        end if;
                     end if;
            
         
@@ -102,8 +107,9 @@ when others=>
                    cuenta_next<=cuenta_reg + 1;
                    
                    if(micro_data='1')then
-                                       
-                       dato1_next<=dato1_reg + 1;
+                        if (dato1_reg/=255)then
+                            dato1_next<=dato1_reg + 1;
+                        end if;
                    end if;
                    
                    if (cuenta_reg =106)then
@@ -112,7 +118,7 @@ when others=>
                         
                         if(primer_ciclo_reg = '1')then
                    
-                            sample_out <= std_logic_vector(dato2_reg);
+                            sample_out_next <= std_logic_vector(dato2_reg);
                         end if;
                    end if;
    
@@ -128,11 +134,13 @@ when others=>
             end if;
             
             if(micro_data='1')then
-                dato2_next<=dato2_reg +1;
+                if (dato1_reg/=255)then
+                    dato2_next<=dato2_reg +1;
+                end if;
             end if;
             
             if(cuenta_reg = 256)then
-                sample_out <= std_logic_vector(dato1_reg);
+                sample_out_next <= std_logic_vector(dato1_reg);
                 dato1_next<=(others=>'0');
             end if;
         end if;
@@ -163,6 +171,7 @@ with (cuenta_reg) select sample_out_ready<=
 (enable_4_cycles and clk_12megas and primer_ciclo_reg)when to_unsigned(106,cuenta_reg'length),
 '0' when others;
 
+sample_out<=sample_out_reg;
 
 
 end Behavioral;
