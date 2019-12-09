@@ -52,7 +52,7 @@ constant ca1,ca3:signed:="00000000";
 constant ca2:signed:="00000000";
 
 signal fir_enable:std_logic;
-signal control: std_logic_vector(2 downto 0);
+signal control: std_logic_vector(3 downto 0);
 signal c0,c1,c2,c3,c4:signed(7 downto 0):=(others=>'0');
 signal r1_next, r1_reg:signed(15 downto 0):=(others=>'0');
 signal r2_next,r2_reg,r3_next,r3_reg:signed(sample_size-1 downto 0);
@@ -63,7 +63,7 @@ component fir_filter_control
 Port ( clk_12megas : in STD_LOGIC;
            reset : in STD_LOGIC;
            sample_in_ready : in STD_LOGIC;
-           control : out STD_LOGIC_VECTOR(2 downto 0);
+           control : out STD_LOGIC_VECTOR(3 downto 0);
            fir_enable:out STD_LOGIC;
            en_5:out std_logic);
 end component;
@@ -80,7 +80,7 @@ en_5=>en_5
 --input register
 process(clk)
 begin
-    if(reset = '1' or fir_enable='1')then
+    if(reset = '1')then
         x0<= (others=>'0');
         x1<= (others=>'0');
         x2<= (others=>'0');
@@ -138,15 +138,17 @@ begin
         when "011" => multB<= c3;
         when others => multB<= signed(c4);   
     end case;
-    if(en_5='0')then
+    if(fir_enable='0')then
         r1_next<=multA*multB;
         r2_next<=r1_reg;
         r3_next<=r2_reg + r3_reg;
     else
-        r1_next<=r1_reg;
-        r2_next<=r2_reg;
-        r3_next<=r3_reg;
+        r1_next<=(others=>'0');
+        r2_next<=(others=>'0');
+        r3_next<=(others=>'0');
     end if;
-    sample_out<= std_logic_vector(r3_reg(15 downto 7));
+    
 end process;
+sample_out_ready<=fir_enable;
+sample_out<= std_logic_vector(r3_reg(15 downto 7));
 end Behavioral;
