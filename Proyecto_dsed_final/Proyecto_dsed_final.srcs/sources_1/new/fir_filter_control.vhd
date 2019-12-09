@@ -35,12 +35,13 @@ entity fir_filter_control is
     Port ( clk_12megas : in STD_LOGIC;
            reset : in STD_LOGIC;
            sample_in_ready : in STD_LOGIC;
-           control : out STD_LOGIC_VECTOR(2 downto 0);
-           fir_enable:out STD_LOGIC);
+           control : out STD_LOGIC_VECTOR(3 downto 0);
+           fir_enable:out STD_LOGIC
+           );
 end fir_filter_control;
 
 architecture Behavioral of fir_filter_control is
-signal cuenta_reg,cuenta_next: std_logic_vector(2 downto 0);
+signal cuenta_reg,cuenta_next: std_logic_vector(3 downto 0);
 begin
 --register logic
 process(clk_12megas,reset)
@@ -49,30 +50,33 @@ if(reset='1')then
     cuenta_reg<="0000";
 elsif(rising_edge(clk_12megas))then
     cuenta_reg<=cuenta_next;
+
 end if;
 end process;
 
 --next state logic
-process(cuenta_reg)
+process(cuenta_reg,sample_in_ready)
 begin
-if(cuenta_reg<"0111")then
-        cuenta_next<=std_logic_vector(unsigned(cuenta_reg)+1);
-        fir_enable<='0';
-elsif(cuenta_reg="0111")then
-    cuenta_next<=std_logic_vector(unsigned(cuenta_reg)+1);  
-    fir_enable<='1';
-elsif(cuenta_reg="1000")then
+if(cuenta_reg<"0111" )then
+    cuenta_next<=std_logic_vector(unsigned(cuenta_reg)+1);
     fir_enable<='0';
+elsif(cuenta_reg="0111")then    
+
+    cuenta_next<=std_logic_vector(unsigned(cuenta_reg)+1);
+    fir_enable<='1';
+    
+elsif(cuenta_reg="1000")then 
+    fir_enable<='0';
+    if (sample_in_ready='1')then
+        cuenta_next<="0000";
+    else
+        cuenta_next<=cuenta_reg;
+    end if;
+else 
     cuenta_next<=cuenta_reg;
-    if( sample_in_ready='1')then
-       cuenta_next<="0000";
-     end if;
- 
 end if;
-
 end process;
--- output logic
-control<=cuenta_reg;
 
+control<=cuenta_reg;
 end Behavioral;
 

@@ -43,19 +43,23 @@ end fir_filter;
 
 architecture Behavioral of fir_filter is
 --costantes paso bajo
-constant cb0,cb4:signed:="00001001";
-constant cb1,cb3:signed:="00011111";
+constant cb0,cb4:signed:="00000101";
+constant cb1,cb3:signed:="00001111";
 constant cb2:signed:="00111001";
 --costantes paso alto NO SON ESTOS VALORES
-constant ca0,ca4:signed:="00000000";
-constant ca1,ca3:signed:="00000000";
-constant ca2:signed:="00000000";
+constant ca0,ca4:signed:="11111111";
+constant ca1,ca3:signed:="11100110";
+constant ca2:signed:="01001101";
 
 signal fir_enable:std_logic;
 signal control: std_logic_vector(3 downto 0);
 signal c0,c1,c2,c3,c4:signed(7 downto 0):=(others=>'0');
-signal r1_next, r1_reg:signed(15 downto 0):=(others=>'0');
-signal r2_next,r2_reg,r3_next,r3_reg:signed(sample_size-1 downto 0);
+
+--signal r1_next, r1_reg:signed(15 downto 0):=(others=>'0');
+--signal r2_next,r2_reg,r3_next,r3_reg:signed(sample_size-1 downto 0);
+signal r1_next, r1_reg,r2_next,r2_reg:signed(15 downto 0):=(others=>'0');
+signal r3_next,r3_reg:signed(14 downto 0):=(others=>'0');
+
 signal x0, x1, x2, x3, x4:std_logic_vector(7 downto 0):=(others=>'0');
 signal multA, multB:signed(7 downto 0):=(others=>'0');
 signal en_5:std_logic;
@@ -64,8 +68,7 @@ Port ( clk_12megas : in STD_LOGIC;
            reset : in STD_LOGIC;
            sample_in_ready : in STD_LOGIC;
            control : out STD_LOGIC_VECTOR(3 downto 0);
-           fir_enable:out STD_LOGIC;
-           en_5:out std_logic);
+           fir_enable:out STD_LOGIC);
 end component;
 begin
 fir_control:fir_filter_control 
@@ -74,8 +77,7 @@ clk_12megas=>clk,
 reset=>reset,
 sample_in_ready=>sample_in_enable,
 control=> control,
-fir_enable=>fir_enable,
-en_5=>en_5
+fir_enable=>fir_enable
 );
 --input register
 process(clk)
@@ -109,7 +111,7 @@ begin
 end process;
 
 --next state logic
-process(fir_enable,filter_select,control,sample_in,r1_reg,r2_reg,r3_reg,x0,x1,x2,x3,x4)
+process(fir_enable,filter_select,control,sample_in,r1_reg,r2_reg,r3_reg,x0,x1,x2,x3,x4,multA,multB)
 begin
     if(filter_select='1')then
         c0<=ca0;
@@ -125,30 +127,34 @@ begin
         c4<=cb4;
     end if;
     case control is 
-        when "000" => multA<= signed(x0);
-        when "001" => multA<= signed(x1);
-        when "010" => multA<= signed(x2); 
-        when "011" => multA<= signed(x3);
-        when others => multA<= signed(x4);   
+        when "0000" => multA<= signed(x0);
+        when "0001" => multA<= signed(x1);
+        when "0010" => multA<= signed(x2); 
+        when "0011" => multA<= signed(x3);
+        when "0100"=> multA<= signed(x4);
+        when others=> multA<=(others=>'0') ;   
     end case;
     case control is 
-        when "000" => multB<= c0;
-        when "001" => multB<= c1;
-        when "010" => multB<= c2; 
-        when "011" => multB<= c3;
-        when others => multB<= signed(c4);   
+        when "0000" => multB<= c0;
+        when "0001" => multB<= c1;
+        when "0010" => multB<= c2; 
+        when "0011" => multB<= c3;        
+        when "0100" => multB<= c4; 
+        when others => multB<=(others=>'0');
     end case;
-    if(fir_enable='0')then
-        r1_next<=multA*multB;
-        r2_next<=r1_reg;
-        r3_next<=r2_reg + r3_reg;
-    else
-        r1_next<=(others=>'0');
-        r2_next<=(others=>'0');
+    if(fir_enable='1')then
         r3_next<=(others=>'0');
+    else
+        r1_next<=multA*multB;
+        --r2_next<=r1_reg(15 downto 8);
+        r2_next<=r1_reg;
+        
+        r3_next<=(r2_reg(15) & r2_reg(13 downto 0))  + r3_reg;
     end if;
-    
+
 end process;
+--sample_out<= std_logic_vector(r3_reg);
+sample_out<= std_logic_vector(r3_reg(14 downto 7));
+
 sample_out_ready<=fir_enable;
-sample_out<= std_logic_vector(r3_reg(15 downto 7));
 end Behavioral;
