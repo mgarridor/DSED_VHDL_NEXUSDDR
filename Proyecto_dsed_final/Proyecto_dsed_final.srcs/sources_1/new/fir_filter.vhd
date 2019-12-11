@@ -44,9 +44,9 @@ end fir_filter;
 architecture Behavioral of fir_filter is
 --costantes paso bajo
 constant cb0,cb4:signed:="00000101";
-constant cb1,cb3:signed:="00001111";
+constant cb1,cb3:signed:="00011111";
 constant cb2:signed:="00111001";
---costantes paso alto NO SON ESTOS VALORES
+--costantes paso alto 
 constant ca0,ca4:signed:="11111111";
 constant ca1,ca3:signed:="11100110";
 constant ca2:signed:="01001101";

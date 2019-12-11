@@ -47,21 +47,14 @@ begin
 
     sample_in<="00000000";--0
     wait for 1000 ns;
-    sample_in<="01111111";--0.5
+    sample_in<="01000000";--0.5
     wait for 1000 ns;
     sample_in<="00000000";--0
     wait for 1000 ns;
-    sample_in<="00011111";--0.125
+    sample_in<="00010000";--0.125
     wait for 1000 ns;
     sample_in<="00000000";--0
-    wait for 1000 ns;
-    sample_in<="00000000";--0
-    wait for 1000 ns;
-    sample_in<="00000000";--0
-    wait for 1000 ns;
-    sample_in<="00000000";--0
-     wait for 1000 ns;--Se repite
-wait;
+    wait for 4000 ns;--Se repite
 end process;            
 
 process
