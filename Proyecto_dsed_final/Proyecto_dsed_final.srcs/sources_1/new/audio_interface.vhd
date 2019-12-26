@@ -75,6 +75,7 @@ component FSMD_microphone is
            sample_out_ready : out STD_LOGIC);
 end component;
 
+
 signal clk_3megas,en_2_cycles,enable_fsmd,enable_pwm, enable_4_cycles: std_logic;
 
 begin
