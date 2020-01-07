@@ -167,8 +167,8 @@ end case;
 end process;
 --Combinational logic
 with (cuenta_reg) select sample_out_ready<=
-(enable_4_cycles and clk_12megas) when to_unsigned(256,cuenta_reg'length),
-(enable_4_cycles and clk_12megas and primer_ciclo_reg)when to_unsigned(106,cuenta_reg'length),
+(enable_4_cycles ) when to_unsigned(256,cuenta_reg'length),--cambio aqui quitando el and con el reloj
+(enable_4_cycles and primer_ciclo_reg)when to_unsigned(106,cuenta_reg'length),
 '0' when others;
 
 sample_out<=sample_out_reg;

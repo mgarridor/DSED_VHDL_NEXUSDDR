@@ -62,7 +62,7 @@ signal r3_next,r3_reg:signed(14 downto 0):=(others=>'0');
 
 signal x0, x1, x2, x3, x4:std_logic_vector(7 downto 0):=(others=>'0');
 signal multA, multB:signed(7 downto 0):=(others=>'0');
-signal en_5:std_logic;
+signal en_5:std_logic;--podria no valer pr nada
 component fir_filter_control 
 Port ( clk_12megas : in STD_LOGIC;
            reset : in STD_LOGIC;
@@ -144,6 +144,8 @@ begin
     end case;
     if(fir_enable='1')then
         r3_next<=(others=>'0');
+        r1_next<=r1_reg;
+        r2_next<=r2_reg;
     else
         r1_next<=multA*multB;
         --r2_next<=r1_reg(15 downto 8);

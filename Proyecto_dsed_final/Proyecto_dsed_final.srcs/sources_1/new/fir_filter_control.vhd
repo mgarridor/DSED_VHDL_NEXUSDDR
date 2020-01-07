@@ -61,10 +61,8 @@ if(cuenta_reg<"0111" )then
     cuenta_next<=std_logic_vector(unsigned(cuenta_reg)+1);
     fir_enable<='0';
 elsif(cuenta_reg="0111")then    
-
     cuenta_next<=std_logic_vector(unsigned(cuenta_reg)+1);
     fir_enable<='1';
-    
 elsif(cuenta_reg="1000")then 
     fir_enable<='0';
     if (sample_in_ready='1')then
@@ -74,6 +72,7 @@ elsif(cuenta_reg="1000")then
     end if;
 else 
     cuenta_next<=cuenta_reg;
+    fir_enable<='0';
 end if;
 end process;
 

@@ -42,17 +42,31 @@ entity controlador_total is
        micro_LR : out STD_LOGIC;
        jack_sd : out STD_LOGIC;
        jack_pwm : out STD_LOGIC;
-       filter_select: in STD_LOGIC);
+       filter_select: in STD_LOGIC;
+       rebobinar: in STD_LOGIC);
 end controlador_total;
 
 architecture Behavioral of controlador_total is
 
+
 signal ena,clk_12megas,sample_out_ready,sample_request,sample_out_filtered_ready:std_logic;
 signal sample_out,sample_in,sample_out_filtered,sample_out_a2,sample_out_filtered_a2:std_logic_vector(sample_size-1 downto 0);
 
+signal rebobinar_larger,record_enable_larger,play_enable_larger,pause_larger:std_logic;
+
+--señales de display
+signal segmentos:std_logic_vector(6 downto 0);
+signal display_7s:std_logic_vector(7 downto 0); 
+
+
 signal addr_write,addr_read,addr : std_logic_vector(18 downto 0);
 signal wea : std_logic_vector(0 downto 0);
-
+component enlarger_pulse 
+    Port ( input : in STD_LOGIC;
+           clk : in STD_LOGIC;
+           reset: in std_logic;
+           output : out STD_LOGIC);
+end component;
 component clk_wiz_0
 port
  (-- Clock in ports
@@ -95,7 +109,8 @@ COMPONENT blk_mem_gen_0
     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
     addra : IN STD_LOGIC_VECTOR(18 DOWNTO 0);
     dina : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    douta : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+    douta : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+    rsta : in std_logic
   );
 END COMPONENT;
 
@@ -104,10 +119,21 @@ component control_escritura is
            rst : in STD_LOGIC;
            signal_ready : in STD_LOGIC;
            enable : in STD_LOGIC;
-           addr : out STD_LOGIC_vector(18 downto 0)
+           addr : out STD_LOGIC_vector(18 downto 0);
+           rebobinar:in STD_LOGIC;
+           pause:in STD_LOGIC
            );
 end component;
 
+component display is
+    Port ( clk: in std_logic;
+           rec : in STD_LOGIC;
+           play : in STD_LOGIC;
+           pause : in STD_logic;
+           segmentos : out STD_LOGIC_VECTOR (6 downto 0);
+           display : out STD_LOGIC_VECTOR (7 downto 0));
+
+end component;
 
 begin
 memory : blk_mem_gen_0
@@ -117,7 +143,8 @@ memory : blk_mem_gen_0
     wea => wea,
     addra => addr,
     dina => sample_out_filtered,
-    douta => sample_in
+    douta => sample_in,
+    rsta=>reset
   );
 reloj : clk_wiz_0
    port map ( 
@@ -127,22 +154,22 @@ reloj : clk_wiz_0
    clk_in1 => clk100Mhz
  );
  
-UUT: audio_interface Port map(
+audio: audio_interface Port map(
     clk_12megas=>clk_12megas,
     reset=> reset,
-    record_enable=>record_enable,
+    record_enable=>record_enable_larger,
     sample_out=> sample_out,
     sample_out_ready => sample_out_ready,
     micro_clk => micro_clk,
     micro_data=> micro_data,
     micro_LR =>micro_LR,
-    play_enable=>play_enable,
-    sample_in =>sample_out_filtered,
-    sample_request=>sample_out_filtered_ready,
+    play_enable=>play_enable_larger,
+    sample_in =>sample_in,
+    sample_request=>sample_request,
     jack_sd =>jack_sd,
     jack_pwm =>jack_pwm
 );
-UUT1:fir_filter Port map(
+fir:fir_filter Port map(
        clk =>clk_12megas,
        reset =>reset,
        sample_in =>sample_out_a2,
@@ -151,31 +178,72 @@ UUT1:fir_filter Port map(
        sample_out =>sample_out_filtered_a2,
        sample_out_ready =>sample_out_filtered_ready
 );
-control1:control_escritura Port map(
+control1_escritura:control_escritura Port map(
      clk =>clk_12megas,
           rst =>reset,
-          signal_ready => sample_out_ready,
-          enable => record_enable,
-          addr =>addr_write
+          signal_ready => sample_out_filtered_ready,
+          enable => record_enable_larger,
+          addr =>addr_write,
+          pause=>pause_larger,
+           rebobinar=>rebobinar_larger
           );
 
-control2:control_escritura Port map(
+control2_lectura:control_escritura Port map(
      clk =>clk_12megas,
           rst =>reset,
           signal_ready => sample_request,
-          enable => play_enable,
-          addr =>addr_read
+          enable => play_enable_larger,
+          addr =>addr_read,
+          pause=>pause_larger,
+          rebobinar=>rebobinar_larger
           );
+record_enalarger:enlarger_pulse Port Map(
+    input=>record_enable,
+    clk=>clk_12megas,
+    reset=>reset,
+    output=>record_enable_larger
+);
+play_enalarger:enlarger_pulse Port Map(
+    input=>play_enable,
+    clk=>clk_12megas,
+    reset=>reset,
+    output=>play_enable_larger
+);
+pausa_enalrger:enlarger_pulse Port Map(
+    input=>pausa,
+    clk=>clk_12megas,
+    reset=>reset,
+    output=>pause_larger
+);
+rebob:enlarger_pulse Port Map(
+    input=>rebobinar,
+    clk=>clk_12megas,
+    reset=>reset,
+    output=>rebobinar_larger
+);
 
+dis_7s:display Port Map(
+    clk=>clk_12megas,
+    rec=>record_enable_larger,
+    play=>play_enable_larger,
+    pause=>pause_larger,
+    display=>display_7s,
+    segmentos=>segmentos
+);
+    
+
+--conversion complemento a 2 a decimal y viceversa
 sample_out_a2<=(not(sample_out(sample_size-1)) & sample_out((sample_size-2)downto 0));
 sample_out_filtered<=(not(sample_out_filtered_a2(sample_size-1)) & sample_out_filtered_a2((sample_size-2)downto 0));
 
-wea(0)<=record_enable;
-ena <= play_enable or record_enable;
+--enables de memoria
+wea(0)<=record_enable_larger;
+ena <= play_enable_larger or record_enable_larger;
 
-with record_enable select addr<=
+--seleccion de direccion de memoria para lectura o escritura
+with record_enable_larger select addr<=
     addr_write when '1',
-    addr_read when '0';
+    addr_read when others;
     
 
 end Behavioral;
