@@ -27,7 +27,7 @@ signal sample_out : std_logic_vector(sample_size -1 downto 0) := (others => '0')
 
 signal reset: std_logic;
 signal sample_in_enable:std_logic:='0';
-signal filter_select:std_logic:='1';
+signal filter_select:std_logic:='0';--filtro paso alto
 signal sample_out_ready:std_logic;
 constant clk_period : time := 10 ns;
 constant sample_in_enable_period:time:= 200 ns;
@@ -41,7 +41,7 @@ UUT: fir_filter port map(
     reset=>reset,
     sample_in=>sample_in,
     sample_in_enable=>sample_in_enable,
-    filter_select=>filter_select,--filtro paso bajo 
+    filter_select=>filter_select,
     sample_out=>sample_out,
     sample_out_ready=>sample_out_ready
 );
@@ -56,7 +56,7 @@ reset<='0';
 wait;
 end process;
 read_process : PROCESS (sample_in_enable)
-FILE in_file : text OPEN read_mode IS "C:\Users\dasba\Desktop\teleco\dsed\proyecto_dsed\DSED_VHDL_NEXUSDDR\Proyecto_dsed_final\sample_in.dat";
+FILE in_file : text OPEN read_mode IS "sample_in.dat";
 
 VARIABLE in_line : line;
 VARIABLE in_int : integer;
@@ -78,7 +78,7 @@ end if;
 end process;
 
 WRITE_PROCESS:PROCESS(sample_out_ready)
-FILE out_file : text OPEN write_mode IS "C:\Users\dasba\Desktop\teleco\dsed\proyecto_dsed\DSED_VHDL_NEXUSDDR\Proyecto_dsed_final\sample_outPA.dat";
+FILE out_file : text OPEN write_mode IS "sample_out_bajo.dat";
 VARIABLE out_line : line;
 variable sample_out_matlab: integer;
 

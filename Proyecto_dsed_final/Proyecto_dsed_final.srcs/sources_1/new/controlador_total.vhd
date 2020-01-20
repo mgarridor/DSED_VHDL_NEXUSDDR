@@ -185,7 +185,7 @@ control1_escritura:control_escritura Port map(
           enable => record_enable_larger,
           addr =>addr_write,
           pause=>pause_larger,
-           rebobinar=>rebobinar_larger
+          rebobinar=>rebobinar_larger
           );
 
 control2_lectura:control_escritura Port map(

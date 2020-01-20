@@ -44,14 +44,14 @@ architecture Behavioral of FSMD_microphone is
 
 type state_type is (idle, muestreo);
 signal state, next_state : state_type;
-signal dato1_reg,dato1_next, dato2_reg,dato2_next:unsigned (sample_size-1 downto 0);
-signal cuenta_reg,cuenta_next : unsigned(8 downto 0);
+signal dato1_reg,dato1_next, dato2_reg,dato2_next:unsigned (sample_size-1 downto 0):=(others=>'0');
+signal cuenta_reg,cuenta_next : unsigned(8 downto 0):=(others=>'0');
 signal sample_out_reg,sample_out_next:std_logic_vector(sample_size-1 downto 0);
 signal primer_ciclo_reg,primer_ciclo_next : std_logic;
 
 begin
 
-SYNC_PROC : process (clk_12megas,reset)
+SYNC_PROC : process (clk_12megas,reset,enable_4_cycles)
 begin
     if (reset = '1') then
         state <= idle;
@@ -134,7 +134,7 @@ when others=>
             end if;
             
             if(micro_data='1')then
-                if (dato1_reg/=255)then
+                if (dato2_reg/=255)then
                     dato2_next<=dato2_reg +1;
                 end if;
             end if;
